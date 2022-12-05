@@ -1,0 +1,125 @@
+[BF] # Bloom Filter
+
+    [BF.para] # parameters
+    num_bits = 2577607
+    num_hash = 5
+
+    [BF.test] # testing metrics
+    sample = 0.3             # Sample 30% records as a sample
+    insert = ["RATE"]        # Metric for insertion
+    lookup = ["RATE", "PRC"] # Metric for looking up
+
+    [BF.data] # testing data
+    data = "../data/records.bin"  # Path to data, being either relative or absolute.
+                                  # But remember to QUOTE it!
+                                  # Relative to `build/`.
+    format = [["flowkey", "padding"], [13, 2]]
+    # Format of records in data
+    # Grammar:
+    #   | Field Name | Viable Length | Further Constraints                   |
+    #   |:-----------|:--------------|:--------------------------------------|
+    #   | flowkey    | 4, 8, 13      | Specify exactly once                  |
+    #   | timestamp  | 1, 2, 4, 8    | In microseconds. Specify at most once |
+    #   | length     | 1, 2, 4, 8    | Specify at most once                  |
+    #   | padding    | > 0           | None                                  |
+
+
+
+[CM] # Count Min Sketch
+
+  [CM.para]
+  depth = 5
+  width = 80001
+
+  [CM.data]
+  cnt_method = "InPacket"
+  data = "../data/records.bin"
+  format = [["flowkey", "padding", "timestamp", "length", "padding"], [13, 3, 8, 2, 6]]
+
+  [CM.test]
+  update = ["RATE"]
+  query = ["RATE", "ARE", "AAE"]
+
+  [CM.ch]
+  cnt_no_ratio = 0.3
+  width_cnt = [10, 7]
+  no_hash = [3]
+  
+
+[EL] # ElasticSketch
+
+  [EL.para]
+  num_heavy_packet = 8
+  num_light_packet = 8192
+  num_heavy_size = 4
+  num_light_size = 3
+  thre_elephant = 1000
+  thre_eject = 8
+
+  [EL.data]
+  cnt_method = "InPacket"
+  hx_method = "TopK"
+  threshold_heavy_hitter = 300
+  data = "../data/records.bin"
+  format = [["flowkey", "padding", "timestamp", "length", "padding"], [13, 3, 8, 2, 6]]
+
+  [EL.test]
+  update = ["RATE"]
+  query = ["RATE", "ARE", "AAE"]
+  heavyhitter = ["TIME", "ARE", "PRC", "RCL"]
+
+  [EL.ch]
+  cnt_no_ratio = 0.3
+  width_cnt = [10, 7]
+  no_hash = [3]
+
+[HP] # Hash Pipe
+
+  [HP.para]
+  depth = 5
+  width = 1001
+
+  [HP.data]
+  hx_method = "TopK"
+  threshold_heavy_hitter = 300
+  cnt_method = "InPacket"
+  data = "../data/records.bin"
+  format = [["flowkey", "padding", "timestamp", "length", "padding"], [13, 3, 8, 2, 6]]
+
+  [HP.test]
+  update = ["RATE"]
+  heavyhitter = ["TIME", "ARE", "PRC", "RCL"]
+
+[FlowRadar] # Flow Radar
+
+  [FlowRadar.para]
+    flow_filter_bit = 1000000
+    flow_filter_hash = 50
+    count_table_num = 500000
+    count_table_hash = 5
+  
+  [FlowRadar.data]
+    data = "../data/records.bin"
+    format = [["flowkey", "padding", "timestamp", "length", "padding"], [13, 3, 8, 2, 6]]
+  
+  [FlowRadar.test]
+    update = ["RATE"]
+    decode = ["TIME", "ARE", "AAE", "RATIO", "ACC", "PODF"]
+    decode_podf = 0.01
+
+
+[CBF] # Counting Bloom Filter
+
+  [CBF.para]
+    num_cnt = 200000
+    num_hash = 3
+    cnt_length = 4
+
+  [CBF.data]
+    data = "../data/records.bin"
+    format = [["flowkey", "padding", "timestamp", "length", "padding"], [13, 3, 8, 2, 6]]
+
+  [CBF.test]
+    sample = 0.3
+    insert = ["RATE"]
+    lookup = ["RATE", "PRC"]
